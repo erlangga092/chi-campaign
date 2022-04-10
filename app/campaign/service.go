@@ -83,6 +83,9 @@ func (s *service) Update(inputID GetCampaignDetailInput, inputData CreateCampaig
 	campaign.Perks = inputData.Perks
 	campaign.GoalAmount = inputData.GoalAmount
 
+	slug := strings.ToLower(strings.Join(strings.Split(campaign.Name, " "), "-"))
+	campaign.Slug = slug
+
 	updatedCampaign, err := s.campaignRepository.Update(campaign)
 	if err != nil {
 		return updatedCampaign, err
