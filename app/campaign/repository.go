@@ -31,7 +31,31 @@ func NewCampaignRepository(DB *sql.DB) Repository {
 }
 
 func (r *repository) Save(campaign Campaign) (Campaign, error) {
-	sqlQuery := sq.Insert("campaigns").Columns("user_id", "name", "short_description", "description", "perks", "backer_count", "goal_amount", "current_amount", "slug", "created_at", "updated_at").Values(campaign.UserID, campaign.Name, campaign.ShortDescription, campaign.Description, campaign.Perks, campaign.BackerCount, campaign.GoalAmount, campaign.CurrentAmount, campaign.Slug, time.Now().Format(layoutDateTime), time.Now().Format(layoutDateTime)).RunWith(r.DB)
+	sqlQuery := sq.Insert("campaigns").Columns(
+		"user_id",
+		"name",
+		"short_description",
+		"description",
+		"perks",
+		"backer_count",
+		"goal_amount",
+		"current_amount",
+		"slug",
+		"created_at",
+		"updated_at").
+		Values(
+			campaign.UserID,
+			campaign.Name,
+			campaign.ShortDescription,
+			campaign.Description,
+			campaign.Perks,
+			campaign.BackerCount,
+			campaign.GoalAmount,
+			campaign.CurrentAmount,
+			campaign.Slug,
+			time.Now().Format(layoutDateTime),
+			time.Now().Format(layoutDateTime)).
+		RunWith(r.DB)
 
 	result, err := sqlQuery.Exec()
 	if err != nil {
@@ -55,7 +79,24 @@ func (r *repository) GetCampaignByID(ID int) (Campaign, error) {
 	campaign := Campaign{}
 	user := user.User{}
 
-	sqlQuery := sq.Select("campaigns.id", "campaigns.user_id", "campaigns.name", "campaigns.short_description", "campaigns.description", "campaigns.perks", "campaigns.backer_count", "campaigns.goal_amount", "campaigns.current_amount", "campaigns.slug", "campaigns.created_at", "campaigns.updated_at", "users.name", "users.avatar_file_name").From("campaigns").Join("users ON users.id = campaigns.user_id").Where(sq.Eq{"campaigns.id": ID})
+	sqlQuery := sq.Select(
+		"campaigns.id",
+		"campaigns.user_id",
+		"campaigns.name",
+		"campaigns.short_description",
+		"campaigns.description",
+		"campaigns.perks",
+		"campaigns.backer_count",
+		"campaigns.goal_amount",
+		"campaigns.current_amount",
+		"campaigns.slug",
+		"campaigns.created_at",
+		"campaigns.updated_at",
+		"users.name",
+		"users.avatar_file_name").
+		From("campaigns").
+		Join("users ON users.id = campaigns.user_id").
+		Where(sq.Eq{"campaigns.id": ID})
 
 	rows, err := sqlQuery.RunWith(r.DB).Query()
 	if err != nil {
@@ -65,7 +106,23 @@ func (r *repository) GetCampaignByID(ID int) (Campaign, error) {
 	defer rows.Close()
 
 	if rows.Next() {
-		err := rows.Scan(&campaign.ID, &campaign.UserID, &campaign.Name, &campaign.ShortDescription, &campaign.Description, &campaign.Perks, &campaign.BackerCount, &campaign.GoalAmount, &campaign.CurrentAmount, &campaign.Slug, &campaign.CreatedAt, &campaign.UpdatedAt, &user.Name, &user.AvatarFileName)
+		err := rows.Scan(
+			&campaign.ID,
+			&campaign.UserID,
+			&campaign.Name,
+			&campaign.ShortDescription,
+			&campaign.Description,
+			&campaign.Perks,
+			&campaign.BackerCount,
+			&campaign.GoalAmount,
+			&campaign.CurrentAmount,
+			&campaign.Slug,
+			&campaign.CreatedAt,
+			&campaign.UpdatedAt,
+			&user.Name,
+			&user.AvatarFileName,
+		)
+
 		if err != nil {
 			return campaign, err
 		}
@@ -85,7 +142,20 @@ func (r *repository) GetCampaignByID(ID int) (Campaign, error) {
 func (r *repository) GetCampaigns() ([]Campaign, error) {
 	campaigns := []Campaign{}
 
-	sqlQuery := sq.Select("id", "user_id", "name", "short_description", "description", "perks", "backer_count", "goal_amount", "current_amount", "slug", "created_at", "updated_at").From("campaigns")
+	sqlQuery := sq.Select(
+		"id",
+		"user_id",
+		"name",
+		"short_description",
+		"description",
+		"perks",
+		"backer_count",
+		"goal_amount",
+		"current_amount",
+		"slug",
+		"created_at",
+		"updated_at").
+		From("campaigns")
 
 	rows, err := sqlQuery.RunWith(r.DB).Query()
 	if err != nil {
@@ -97,7 +167,21 @@ func (r *repository) GetCampaigns() ([]Campaign, error) {
 	for rows.Next() {
 		campaign := Campaign{}
 
-		err := rows.Scan(&campaign.ID, &campaign.UserID, &campaign.Name, &campaign.ShortDescription, &campaign.Description, &campaign.Perks, &campaign.BackerCount, &campaign.GoalAmount, &campaign.CurrentAmount, &campaign.Slug, &campaign.CreatedAt, &campaign.UpdatedAt)
+		err := rows.Scan(
+			&campaign.ID,
+			&campaign.UserID,
+			&campaign.Name,
+			&campaign.ShortDescription,
+			&campaign.Description,
+			&campaign.Perks,
+			&campaign.BackerCount,
+			&campaign.GoalAmount,
+			&campaign.CurrentAmount,
+			&campaign.Slug,
+			&campaign.CreatedAt,
+			&campaign.UpdatedAt,
+		)
+
 		if err != nil {
 			return campaigns, err
 		}
@@ -117,7 +201,21 @@ func (r *repository) GetCampaigns() ([]Campaign, error) {
 func (r *repository) GetCampaignsByUserID(userID int) ([]Campaign, error) {
 	campaigns := []Campaign{}
 
-	sqlQuery := sq.Select("id", "user_id", "name", "short_description", "description", "perks", "backer_count", "goal_amount", "current_amount", "slug", "created_at", "updated_at").From("campaigns").Where(sq.Eq{"user_id": userID})
+	sqlQuery := sq.Select(
+		"id",
+		"user_id",
+		"name",
+		"short_description",
+		"description",
+		"perks",
+		"backer_count",
+		"goal_amount",
+		"current_amount",
+		"slug",
+		"created_at",
+		"updated_at").
+		From("campaigns").
+		Where(sq.Eq{"user_id": userID})
 
 	rows, err := sqlQuery.RunWith(r.DB).Query()
 	if err != nil {
@@ -129,7 +227,21 @@ func (r *repository) GetCampaignsByUserID(userID int) ([]Campaign, error) {
 	for rows.Next() {
 		campaign := Campaign{}
 
-		err := rows.Scan(&campaign.ID, &campaign.UserID, &campaign.Name, &campaign.ShortDescription, &campaign.Description, &campaign.Perks, &campaign.BackerCount, &campaign.GoalAmount, &campaign.CurrentAmount, &campaign.Slug, &campaign.CreatedAt, &campaign.UpdatedAt)
+		err := rows.Scan(
+			&campaign.ID,
+			&campaign.UserID,
+			&campaign.Name,
+			&campaign.ShortDescription,
+			&campaign.Description,
+			&campaign.Perks,
+			&campaign.BackerCount,
+			&campaign.GoalAmount,
+			&campaign.CurrentAmount,
+			&campaign.Slug,
+			&campaign.CreatedAt,
+			&campaign.UpdatedAt,
+		)
+
 		if err != nil {
 			return campaigns, err
 		}
@@ -149,7 +261,15 @@ func (r *repository) GetCampaignsByUserID(userID int) ([]Campaign, error) {
 func (r *repository) FindCampaignImagesByCampaignID(campaignID int) ([]CampaignImage, error) {
 	campaignImages := []CampaignImage{}
 
-	sqlQuery := sq.Select("id", "campaign_id", "file_name", "is_primary", "created_at", "updated_at").From("campaign_images").Where(sq.Eq{"campaign_id": campaignID})
+	sqlQuery := sq.Select(
+		"id",
+		"campaign_id",
+		"file_name",
+		"is_primary",
+		"created_at",
+		"updated_at").
+		From("campaign_images").
+		Where(sq.Eq{"campaign_id": campaignID})
 
 	rows, err := sqlQuery.RunWith(r.DB).Query()
 	if err != nil {
@@ -162,7 +282,14 @@ func (r *repository) FindCampaignImagesByCampaignID(campaignID int) ([]CampaignI
 		var isPrimaryNum int
 		campaignImage := CampaignImage{}
 
-		rows.Scan(&campaignImage.ID, &campaignImage.CampaignID, &campaignImage.FileName, &isPrimaryNum, &campaignImage.CreatedAt, &campaignImage.UpdatedAt)
+		rows.Scan(
+			&campaignImage.ID,
+			&campaignImage.CampaignID,
+			&campaignImage.FileName,
+			&isPrimaryNum,
+			&campaignImage.CreatedAt,
+			&campaignImage.UpdatedAt,
+		)
 
 		isPrimary := false
 		if isPrimaryNum == 1 {
@@ -177,7 +304,16 @@ func (r *repository) FindCampaignImagesByCampaignID(campaignID int) ([]CampaignI
 }
 
 func (r *repository) Update(campaign Campaign) (Campaign, error) {
-	sqlQuery := sq.Update("campaigns").Set("name", campaign.Name).Set("short_description", campaign.ShortDescription).Set("perks", campaign.Perks).Set("backer_count", campaign.BackerCount).Set("goal_amount", campaign.GoalAmount).Set("current_amount", campaign.CurrentAmount).Set("slug", campaign.Slug).Set("updated_at", time.Now().Format(layoutDateTime)).Where(sq.Eq{"id": campaign.ID}).RunWith(r.DB)
+	sqlQuery := sq.Update("campaigns").
+		Set("name", campaign.Name).
+		Set("short_description", campaign.ShortDescription).
+		Set("perks", campaign.Perks).
+		Set("backer_count", campaign.BackerCount).
+		Set("goal_amount", campaign.GoalAmount).
+		Set("current_amount", campaign.CurrentAmount).
+		Set("slug", campaign.Slug).
+		Set("updated_at", time.Now().Format(layoutDateTime)).
+		Where(sq.Eq{"id": campaign.ID}).RunWith(r.DB)
 
 	result, err := sqlQuery.Exec()
 	if err != nil {
