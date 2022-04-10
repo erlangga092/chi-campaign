@@ -69,9 +69,11 @@ func main() {
 		r.Get("/campaigns/{id}", campaignHandler.GetCampaignDetail)
 		r.Get("/campaigns", campaignHandler.GetCampaigns)
 		r.With(func(h http.Handler) http.Handler { return authMiddleware(h, authService, userService) }).Post("/campaigns", campaignHandler.CreateCampaign)
+		r.With(func(h http.Handler) http.Handler { return authMiddleware(h, authService, userService) }).Put("/campaigns/{id}", campaignHandler.UpdateCampaign)
 	})
 
-	err = http.ListenAndServe(":8080", r)
+	// listen in port 9000
+	err = http.ListenAndServe(":9000", r)
 	if err != nil {
 		log.Fatal(err)
 	}

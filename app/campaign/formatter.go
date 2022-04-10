@@ -47,7 +47,7 @@ func FormatCampaigns(campaigns []Campaign) []CampaignFormatter {
 type CampaignDetailFormatter struct {
 	ID               int                   `json:"id"`
 	UserID           int                   `json:"user_id"`
-	Name             string                `json:"string"`
+	Name             string                `json:"name"`
 	ShortDescription string                `json:"short_description"`
 	Description      string                `json:"description"`
 	ImageURL         string                `json:"image_url"`

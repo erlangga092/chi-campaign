@@ -1,13 +1,15 @@
 package campaign
 
 import (
+	"errors"
 	"strings"
 )
 
 type Service interface {
 	GetCampaigns(userID int) ([]Campaign, error)
-	GetCampaignDetail(ID int) (Campaign, error)
+	GetCampaignDetail(ID GetCampaignDetailInput) (Campaign, error)
 	CreateCampaign(input CreateCampaignInput) (Campaign, error)
+	Update(inputID GetCampaignDetailInput, inputData CreateCampaignInput) (Campaign, error)
 }
 
 type service struct {
@@ -36,8 +38,8 @@ func (s *service) GetCampaigns(userID int) ([]Campaign, error) {
 	return campaigns, nil
 }
 
-func (s *service) GetCampaignDetail(ID int) (Campaign, error) {
-	campaign, err := s.campaignRepository.GetCampaignByID(ID)
+func (s *service) GetCampaignDetail(input GetCampaignDetailInput) (Campaign, error) {
+	campaign, err := s.campaignRepository.GetCampaignByID(input.ID)
 	if err != nil {
 		return campaign, err
 	}
@@ -63,4 +65,28 @@ func (s *service) CreateCampaign(input CreateCampaignInput) (Campaign, error) {
 	}
 
 	return newCampaign, nil
+}
+
+func (s *service) Update(inputID GetCampaignDetailInput, inputData CreateCampaignInput) (Campaign, error) {
+	campaign, err := s.campaignRepository.GetCampaignByID(inputID.ID)
+	if err != nil {
+		return campaign, err
+	}
+
+	if campaign.UserID != inputData.User.ID {
+		return campaign, errors.New("not an owner of the campaign")
+	}
+
+	campaign.Name = inputData.Name
+	campaign.ShortDescription = inputData.ShortDescription
+	campaign.Description = inputData.Description
+	campaign.Perks = inputData.Perks
+	campaign.GoalAmount = inputData.GoalAmount
+
+	updatedCampaign, err := s.campaignRepository.Update(campaign)
+	if err != nil {
+		return updatedCampaign, err
+	}
+
+	return updatedCampaign, nil
 }

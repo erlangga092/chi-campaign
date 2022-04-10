@@ -3,6 +3,7 @@ package campaign
 import (
 	"chi-app/app/user"
 	"database/sql"
+	"errors"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -14,6 +15,7 @@ type Repository interface {
 	GetCampaigns() ([]Campaign, error)
 	GetCampaignsByUserID(userID int) ([]Campaign, error)
 	FindCampaignImagesByCampaignID(campaignID int) ([]CampaignImage, error)
+	Update(campaign Campaign) (Campaign, error)
 }
 
 type repository struct {
@@ -83,7 +85,7 @@ func (r *repository) GetCampaignByID(ID int) (Campaign, error) {
 func (r *repository) GetCampaigns() ([]Campaign, error) {
 	campaigns := []Campaign{}
 
-	sqlQuery := sq.Select("campaigns.id", "campaigns.user_id", "campaigns.name", "campaigns.short_description", "campaigns.description", "campaigns.perks", "campaigns.backer_count", "campaigns.goal_amount", "campaigns.current_amount", "campaigns.slug", "campaigns.created_at", "campaigns.updated_at", "campaign_images.id", "campaign_images.campaign_id", "campaign_images.file_name", "campaign_images.is_primary", "campaign_images.created_at", "campaign_images.updated_at").From("campaigns").Join("campaign_images ON campaign_images.campaign_id = campaigns.id").Where("campaign_images.is_primary = 1")
+	sqlQuery := sq.Select("id", "user_id", "name", "short_description", "description", "perks", "backer_count", "goal_amount", "current_amount", "slug", "created_at", "updated_at").From("campaigns")
 
 	rows, err := sqlQuery.RunWith(r.DB).Query()
 	if err != nil {
@@ -94,21 +96,18 @@ func (r *repository) GetCampaigns() ([]Campaign, error) {
 
 	for rows.Next() {
 		campaign := Campaign{}
-		campaignImage := CampaignImage{}
-		var isPrimaryNum int
 
-		err := rows.Scan(&campaign.ID, &campaign.UserID, &campaign.Name, &campaign.ShortDescription, &campaign.Description, &campaign.Perks, &campaign.BackerCount, &campaign.GoalAmount, &campaign.CurrentAmount, &campaign.Slug, &campaign.CreatedAt, &campaign.UpdatedAt, &campaignImage.ID, &campaignImage.CampaignID, &campaignImage.FileName, &isPrimaryNum, &campaignImage.CreatedAt, &campaignImage.UpdatedAt)
+		err := rows.Scan(&campaign.ID, &campaign.UserID, &campaign.Name, &campaign.ShortDescription, &campaign.Description, &campaign.Perks, &campaign.BackerCount, &campaign.GoalAmount, &campaign.CurrentAmount, &campaign.Slug, &campaign.CreatedAt, &campaign.UpdatedAt)
 		if err != nil {
 			return campaigns, err
 		}
 
-		isPrimary := false
-		if isPrimaryNum == 1 {
-			isPrimary = true
+		campaignImages, err := r.FindCampaignImagesByCampaignID(campaign.ID)
+		if err != nil {
+			return campaigns, err
 		}
 
-		campaignImage.IsPrimary = isPrimary
-		campaign.CampaignImages = append(campaign.CampaignImages, campaignImage)
+		campaign.CampaignImages = campaignImages
 		campaigns = append(campaigns, campaign)
 	}
 
@@ -175,4 +174,29 @@ func (r *repository) FindCampaignImagesByCampaignID(campaignID int) ([]CampaignI
 	}
 
 	return campaignImages, nil
+}
+
+func (r *repository) Update(campaign Campaign) (Campaign, error) {
+	sqlQuery := sq.Update("campaigns").Set("name", campaign.Name).Set("short_description", campaign.ShortDescription).Set("perks", campaign.Perks).Set("backer_count", campaign.BackerCount).Set("goal_amount", campaign.GoalAmount).Set("current_amount", campaign.CurrentAmount).Set("slug", campaign.Slug).Set("updated_at", time.Now().Format(layoutDateTime)).Where(sq.Eq{"id": campaign.ID}).RunWith(r.DB)
+
+	result, err := sqlQuery.Exec()
+	if err != nil {
+		return campaign, err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return campaign, err
+	}
+
+	if int(affected) > 0 {
+		updatedCampaign, err := r.GetCampaignByID(campaign.ID)
+		if err != nil {
+			return updatedCampaign, err
+		}
+
+		return updatedCampaign, nil
+	} else {
+		return Campaign{}, errors.New("failed to update campaign")
+	}
 }
